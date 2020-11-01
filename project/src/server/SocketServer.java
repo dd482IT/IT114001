@@ -1,9 +1,13 @@
+package server;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SocketServer {
 	int port = 3000;
@@ -13,10 +17,11 @@ public class SocketServer {
 	private List<Room> isolatedPrelobbies = new ArrayList<Room>();
 	private final static String PRELOBBY = "PreLobby";
 	protected final static String LOBBY = "Lobby";
+	private final static Logger log = Logger.getLogger(SocketServer.class.getName());
 
 	private void start(int port) {
 		this.port = port;
-		Debug.log("Waiting for client");
+		log.log(Level.INFO, "Waiting for client");
 		try (ServerSocket serverSocket = new ServerSocket(port);) {
 			isRunning = true;
 			// create a lobby on start
@@ -26,7 +31,7 @@ public class SocketServer {
 			while (SocketServer.isRunning) {
 				try {
 					Socket client = serverSocket.accept();
-					Debug.log("Client connecting...");
+					log.log(Level.INFO, "Client connecting...");
 					// Server thread is the server's representation of the client
 					ServerThread thread = new ServerThread(client, lobby);
 					thread.start();
@@ -37,7 +42,7 @@ public class SocketServer {
 					prelobby.addClient(thread);
 					isolatedPrelobbies.add(prelobby);
 
-					Debug.log("Client added to clients pool");
+					log.log(Level.INFO, "Client added to clients pool");
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -49,7 +54,7 @@ public class SocketServer {
 			try {
 				isRunning = false;
 				cleanup();
-				Debug.log("closing server socket");
+				log.log(Level.INFO, "closing server socket");
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -101,9 +106,9 @@ public class SocketServer {
 		Room prelobby = client.getCurrentRoom();
 		if (joinRoom(LOBBY, client)) {
 			prelobby.removeClient(client);
-			Debug.log("Added " + client.getClientName() + " to Lobby; Prelobby should self destruct");
+			log.log(Level.INFO, "Added " + client.getClientName() + " to Lobby; Prelobby should self destruct");
 		} else {
-			Debug.log("Problem moving " + client.getClientName() + " to lobby");
+			log.log(Level.INFO, "Problem moving " + client.getClientName() + " to lobby");
 		}
 	}
 
@@ -142,10 +147,10 @@ public class SocketServer {
 		Room oldRoom = client.getCurrentRoom();
 		if (newRoom != null) {
 			if (oldRoom != null) {
-				Debug.log(client.getClientName() + " leaving room " + oldRoom.getName());
+				log.log(Level.INFO, client.getClientName() + " leaving room " + oldRoom.getName());
 				oldRoom.removeClient(client);
 			}
-			Debug.log(client.getClientName() + " joining room " + newRoom.getName());
+			log.log(Level.INFO, client.getClientName() + " joining room " + newRoom.getName());
 			newRoom.addClient(client);
 			return true;
 		}
@@ -164,12 +169,12 @@ public class SocketServer {
 		}
 		if (getRoom(roomName) != null) {
 			// TODO can't create room
-			Debug.log("Room already exists");
+			log.log(Level.INFO, "Room already exists");
 			return false;
 		} else {
 			Room room = new Room(roomName);// , this);
 			rooms.add(room);
-			Debug.log("Created new room: " + roomName);
+			log.log(Level.INFO, "Created new room: " + roomName);
 			return true;
 		}
 	}
@@ -185,11 +190,11 @@ public class SocketServer {
 			// ignore this, we know it was a parsing issue
 		}
 		if (port > -1) {
-			Debug.log("Starting Server");
+			log.log(Level.INFO, "Starting Server");
 			SocketServer server = new SocketServer();
-			Debug.log("Listening on port " + port);
+			log.log(Level.INFO, "Listening on port " + port);
 			server.start(port);
-			Debug.log("Server Stopped");
+			log.log(Level.INFO, "Server Stopped");
 		}
 	}
 }
