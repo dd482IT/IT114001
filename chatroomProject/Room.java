@@ -3,6 +3,7 @@ package server;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,6 +16,11 @@ public class Room implements AutoCloseable {
 	private final static String COMMAND_TRIGGER = "/";
 	private final static String CREATE_ROOM = "createroom";
 	private final static String JOIN_ROOM = "joinroom";
+	private final static String ROLL = "roll";
+	private final static String FLIP = "flip";
+	private final static String BOLD = "bold";
+	private final static String ITALIC = "italic";
+	Random rand = new Random();
 
 	public Room(String name) {
 		this.name = name;
@@ -119,6 +125,23 @@ public class Room implements AutoCloseable {
 					joinRoom(roomName, client);
 					wasCommand = true;
 					break;
+				case ROLL:
+					int dice1 = rand.nextInt(5) + 1;
+					int dice2 = rand.nextInt((11 - 5)) + 1;
+					sendMessage(client, "... rolled a: *" + (dice1 + dice2));
+					wasCommand = true;
+					break;
+				case FLIP:
+					int coin = rand.nextInt(1);
+					String side;
+					if (coin == 1)
+						side = "heads";
+					else
+						side = "tails";
+					sendMessage(client, "*...flipped a coin and got *" + side);
+					wasCommand = true;
+					break;
+
 				}
 			}
 		} catch (Exception e) {
@@ -163,6 +186,13 @@ public class Room implements AutoCloseable {
 				log.log(Level.INFO, "Removed client " + client.getId());
 			}
 		}
+	}
+
+	// -------------------------------------------------------------------------
+
+	// -------------------------------------------------------------------------
+	public List<String> getRooms() {
+		return server.getRooms();
 	}
 
 	/***
