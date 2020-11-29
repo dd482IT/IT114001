@@ -253,14 +253,15 @@ public class ClientUI extends JFrame implements Event {
 	void addMessage(String str) {
 		JEditorPane entry = new JEditorPane();
 		entry.setContentType("text/html");
-		entry.setEditable(false);
 		if (str.indexOf('*') != -1)
 			str = makeBold(str);
 		if (str.indexOf('`') != -1)
 			str = makeItalic(str);
 		if (str.indexOf('#') != -1)
 			str = underline(str);
+		str = makeColors(str);
 		entry.setText(str);
+		entry.setEditable(false);
 		Dimension d = new Dimension(textArea.getSize().width, calcHeightForText(str));
 		// attempt to lock all dimensions
 		entry.setMinimumSize(d);
@@ -314,6 +315,78 @@ public class ClientUI extends JFrame implements Event {
 			str = str + " ";
 			str = str.replace("#", "<u>");
 			str = str.replace("<u> ", "</u> ");
+		}
+		return str;
+	}
+
+	String makeColors(String str) {
+		String[] message = str.split(" ");
+		String word;
+		String finalStr = "";
+		int i;
+
+		if (message.length < 1) {
+
+			for (i = 0; i < message.length; i++) {
+				word = message[i];
+				if (word.contains("red^") & word.contains("^red")) {
+					word = word.replace("red^", "<font color=\"red\">");
+					word = word.replace("^red", "</font>");
+					message[i] = word;
+				}
+
+				if (word.contains("blue^") & word.contains("^blue")) {
+					word = word.replace("blue^", "<font color=\"blue\">");
+					word = word.replace("^blue", "</font>");
+					message[i] = word;
+				}
+
+				if (word.contains("green^") & word.contains("^green")) {
+					word = word.replace("green^", "<font color=\"green\">");
+					word = word.replace("^green", "</font>");
+					message[i] = word;
+				}
+
+				if (word.contains("yellow^") & word.contains("^yellow")) {
+					word = word.replace("yellow^", "<font color=\"yellow\">");
+					word = word.replace("^yellow", "</font>");
+					message[i] = word;
+				}
+				for (i = 0; i < message.length; i++) {
+					word = message[i];
+					finalStr = finalStr + " " + word;
+				}
+				return finalStr;
+			}
+		} else {
+
+			if (str.contains("yellow^") & str.contains("^yellow")) {
+				str = str.replace("yellow^", "<font color=\"yellow\">");
+				str = str.replace("^yellow", "</font>");
+				return finalStr;
+			}
+
+			if (str.contains("red^") & str.contains("^red")) {
+				str = str.replace("red^", "<font color=\"red\">");
+				str = str.replace("^red", "</font>");
+				finalStr = str;
+				return finalStr;
+			}
+
+			if (str.contains("blue^") & str.contains("^blue")) {
+				str = str.replace("blue^", "<font color=\"blue\">");
+				str = str.replace("^blue", "</font>");
+				finalStr = str;
+				return finalStr;
+			}
+
+			if (str.contains("green^") & str.contains("^green")) {
+				str = str.replace("green^", "<font color=\"green\">");
+				str = str.replace("^green", "</font>");
+				finalStr = str;
+				return finalStr;
+			}
+
 		}
 		return str;
 	}

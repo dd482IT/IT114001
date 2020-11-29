@@ -171,21 +171,115 @@ public class Room implements AutoCloseable {
 	 * @param sender  The client sending the message
 	 * @param message The message to broadcast inside the room
 	 */
+
+	/*
+	 * protected void sendMessage(ServerThread sender, String message) {
+	 * log.log(Level.INFO, getName() + ": Sending message to " + clients.size() +
+	 * " clients"); if (processCommands(message, sender)) { // it was a command,
+	 * don't broadcast return; } Iterator<ServerThread> iter = clients.iterator();
+	 * while (iter.hasNext()) { ServerThread client = iter.next(); boolean
+	 * messageSent = client.send(sender.getClientName(), message); if (!messageSent)
+	 * { iter.remove(); log.log(Level.INFO, "Removed client " + client.getId()); } }
+	 * }
+	 */
+	protected void sendPrvMessag(ServerThread sender, String message) {
+
+		// checks if message is meant to be private, finds space to pull the name of the
+		// user
+		int space = 0;
+		if (message.contains("@") && message.indexOf("@") == 0) {
+
+			for (int i = 0; i < message.length(); i++) {
+				if (message.charAt(i) == ' ') {
+					space = i;
+					break;
+				}
+			}
+			// Receiver holds the name of the client
+			String reciever = message.substring(1, space); // sets the receiver
+			String messageTo = " `Whisper: " + message.substring(space, message.length()) + "` ";
+			log.log(Level.INFO, getName() + ": Sending message to " + clients.size() + " clients");
+			if (processCommands(message, sender)) {
+				// it was a command, don't broadcast
+				return;
+			}
+			// loops through clients, compares receiver to the name of each client
+			Iterator<ServerThread> iter = clients.iterator();
+			while (iter.hasNext()) {
+				ServerThread client = iter.next();
+				if (client.getClientName().equals(reciever)) {
+					boolean messageSent = client.send(sender.getClientName(), messageTo);
+					boolean orignal = sender.send(sender.getClientName(), message);
+					if (!messageSent && !orignal) {
+						iter.remove();
+						log.log(Level.INFO, "Removed client " + client.getId());
+					} else {
+						break;
+					}
+				}
+			}
+		} else {
+
+			log.log(Level.INFO, getName() + ": Sending message to " + clients.size() + " clients");
+			if (processCommands(message, sender)) {
+				// it was a command, don't broadcast
+				return;
+			}
+			Iterator<ServerThread> iter = clients.iterator();
+			while (iter.hasNext()) {
+				ServerThread client = iter.next();
+				boolean messageSent = client.send(sender.getClientName(), message);
+				if (!messageSent) {
+					iter.remove();
+					log.log(Level.INFO, "Removed client " + client.getId());
+				}
+			}
+
+		}
+	}
+
 	protected void sendMessage(ServerThread sender, String message) {
 		log.log(Level.INFO, getName() + ": Sending message to " + clients.size() + " clients");
+		Iterator<ServerThread> iter = clients.iterator();
+
 		if (processCommands(message, sender)) {
 			// it was a command, don't broadcast
 			return;
 		}
-		Iterator<ServerThread> iter = clients.iterator();
-		while (iter.hasNext()) {
-			ServerThread client = iter.next();
-			boolean messageSent = client.send(sender.getClientName(), message);
-			if (!messageSent) {
-				iter.remove();
-				log.log(Level.INFO, "Removed client " + client.getId());
+
+		if (message.contains("@")) {
+			while (iter.hasNext()) {
+				ServerThread client = iter.next();
+				if (message.contains("@" + client.getClientName())) {
+					String[] messageSplit = message.split(" ");
+					String newMessage = "`Whisper: `";
+					for (int i = 0; i < messageSplit.length; i++) {
+						String word = messageSplit[i];
+						if (!word.contains("@")) {
+							newMessage = newMessage + " " + word;
+						}
+					}
+					boolean messageSent = client.send(sender.getClientName(), newMessage);
+					boolean messageRepeated = sender.send(sender.getClientName(),
+							newMessage + "sent to" + client.getClientName());
+					if (!messageSent || !messageRepeated) {
+						iter.remove();
+						log.log(Level.INFO, "Removed client " + client.getId());
+					}
+				}
 			}
+		} else {
+			while (iter.hasNext()) {
+				ServerThread client = iter.next();
+				boolean messageSent = client.send(sender.getClientName(), message);
+				if (!messageSent) {
+					iter.remove();
+					log.log(Level.INFO, "Removed client " + client.getId());
+				}
+			}
+
 		}
+
 	}
 
 	// -------------------------------------------------------------------------
