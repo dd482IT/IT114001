@@ -261,7 +261,7 @@ public class Room implements AutoCloseable {
 					}
 					boolean messageSent = client.send(sender.getClientName(), newMessage);
 					boolean messageRepeated = sender.send(sender.getClientName(),
-							newMessage + "sent to" + client.getClientName());
+							newMessage + "`[sent to " + client.getClientName() + "]`");
 					if (!messageSent || !messageRepeated) {
 						iter.remove();
 						log.log(Level.INFO, "Removed client " + client.getId());
