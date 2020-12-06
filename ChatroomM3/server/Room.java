@@ -21,6 +21,7 @@ public class Room implements AutoCloseable {
 	private final static String BOLD = "bold";
 	private final static String ITALIC = "italic";
 	private final static String MUTE = "mute";
+	private final static String UNMUTE = "unmute";
 
 	Random rand = new Random();
 
@@ -143,6 +144,32 @@ public class Room implements AutoCloseable {
 					sendMessage(client, "*...flipped a coin and got *" + side);
 					wasCommand = true;
 					break;
+				case MUTE:
+					String[] clientList = message.split(" ");
+					clientList[0] = null;
+					for (int i = 0; i < clientList.length; i++) {
+						if (clientList[i] != null) {
+							client.mutedList.add(clientList[i]);
+							sendMessage(client, "#muted " + clientList[i] + "#");
+						} else {
+							log.log(Level.INFO, clientList[i] + "NOT MUTED");
+						}
+					}
+					wasCommand = true;
+					break;
+				case UNMUTE:
+					clientList = message.split(" ");
+					clientList[0] = null;
+					for (int i = 0; i < clientList.length; i++) {
+						if (clientList[i] != null) {
+							client.mutedList.remove(clientList[i]);
+							sendMessage(client, "#Unmuted " + clientList[i] + "#");
+						} else {
+							log.log(Level.INFO, clientList[i] + "NOT UNMUTED");
+						}
+					}
+					wasCommand = true;
+					break;
 				}
 			}
 		} catch (Exception e) {
@@ -165,8 +192,6 @@ public class Room implements AutoCloseable {
 	}
 
 	/***
-	 * ge to all clients in this room. Client is mostly passed for command purposes
-	 * but we can also use it to extract other client info.
 	 * 
 	 * @param sender  The client sending the message
 	 * @param message The message to broadcast inside the room
@@ -241,13 +266,14 @@ public class Room implements AutoCloseable {
 	protected void sendMessage(ServerThread sender, String message) {
 		log.log(Level.INFO, getName() + ": Sending message to " + clients.size() + " clients");
 		Iterator<ServerThread> iter = clients.iterator();
-
 		if (processCommands(message, sender)) {
 			// it was a command, don't broadcast
 			return;
 		}
 
 		if (message.contains("@")) {
+			Iterator<ServerThread> iter = clients.iterator();
+
 			while (iter.hasNext()) {
 				ServerThread client = iter.next();
 				if (message.contains("@" + client.getClientName())) {
@@ -277,7 +303,20 @@ public class Room implements AutoCloseable {
 					log.log(Level.INFO, "Removed client " + client.getId());
 				}
 			}
+			Iterator<ServerThread> iter = clients.iterator();
+			while (iter.hasNext()) {
+				ServerThread client = iter.next();
+				if (!client.isMuted(sender.getClientName())) {
+					boolean messageSent = client.send(sender.getClientName(), message);
+					if (!messageSent) {
+						iter.remove();
+						log.log(Level.INFO, "Removed client " + client.getId());
+					}
+				} else {
+					log.log(Level.INFO, "ERROR");
+				}
 
+			}
 		}
 
 	}

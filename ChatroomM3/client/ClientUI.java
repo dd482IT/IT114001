@@ -65,7 +65,7 @@ public class ClientUI extends JFrame implements Event {
 		roomsMenu.add(roomsSearch);
 		menu.add(roomsMenu);
 		windowSize.width *= .2;
-		windowSize.height *= .4;
+		windowSize.height *= .3;
 		setPreferredSize(windowSize);
 		setSize(windowSize);// This is needed for setLocationRelativeTo()
 		setLocationRelativeTo(null);
