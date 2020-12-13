@@ -22,7 +22,6 @@ public class Room implements AutoCloseable {
 	private final static String ITALIC = "italic";
 	private final static String MUTE = "mute";
 	private final static String UNMUTE = "unmute";
-
 	Random rand = new Random();
 
 	public Room(String name) {
@@ -131,7 +130,7 @@ public class Room implements AutoCloseable {
 				case ROLL:
 					int dice1 = rand.nextInt(5) + 1;
 					int dice2 = rand.nextInt((11 - 5)) + 1;
-					sendMessage(client, "... rolled a: *" + (dice1 + dice2));
+					sendMessage(client, "*... rolled a: *" + (dice1 + dice2));
 					wasCommand = true;
 					break;
 				case FLIP:
@@ -149,7 +148,8 @@ public class Room implements AutoCloseable {
 					clientList[0] = null;
 					for (int i = 0; i < clientList.length; i++) {
 						if (clientList[i] != null) {
-							client.mutedList.add(clientList[i]);
+							// client.mutedList.add(clientList[i]);
+							client.addMuted(clientList[i]);
 							sendMessage(client, "#muted " + clientList[i] + "#");
 						} else {
 							log.log(Level.INFO, clientList[i] + "NOT MUTED");
@@ -170,6 +170,7 @@ public class Room implements AutoCloseable {
 					}
 					wasCommand = true;
 					break;
+
 				}
 			}
 		} catch (Exception e) {
@@ -192,6 +193,9 @@ public class Room implements AutoCloseable {
 	}
 
 	/***
+	 * Takes a sender and a message and broadcasts the message to all clients in
+	 * this room. Client is mostly passed for command purposes but we can also use
+	 * it to extract other client info.
 	 * 
 	 * @param sender  The client sending the message
 	 * @param message The message to broadcast inside the room
@@ -207,6 +211,7 @@ public class Room implements AutoCloseable {
 	 * { iter.remove(); log.log(Level.INFO, "Removed client " + client.getId()); } }
 	 * }
 	 */
+
 	protected void sendPrvMessag(ServerThread sender, String message) {
 
 		// checks if message is meant to be private, finds space to pull the name of the
@@ -265,7 +270,7 @@ public class Room implements AutoCloseable {
 
 	protected void sendMessage(ServerThread sender, String message) {
 		log.log(Level.INFO, getName() + ": Sending message to " + clients.size() + " clients");
-		Iterator<ServerThread> iter = clients.iterator();
+
 		if (processCommands(message, sender)) {
 			// it was a command, don't broadcast
 			return;
@@ -273,7 +278,6 @@ public class Room implements AutoCloseable {
 
 		if (message.contains("@")) {
 			Iterator<ServerThread> iter = clients.iterator();
-
 			while (iter.hasNext()) {
 				ServerThread client = iter.next();
 				if (message.contains("@" + client.getClientName())) {
@@ -295,14 +299,6 @@ public class Room implements AutoCloseable {
 				}
 			}
 		} else {
-			while (iter.hasNext()) {
-				ServerThread client = iter.next();
-				boolean messageSent = client.send(sender.getClientName(), message);
-				if (!messageSent) {
-					iter.remove();
-					log.log(Level.INFO, "Removed client " + client.getId());
-				}
-			}
 			Iterator<ServerThread> iter = clients.iterator();
 			while (iter.hasNext()) {
 				ServerThread client = iter.next();

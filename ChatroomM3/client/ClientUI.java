@@ -1,5 +1,6 @@
 package client;
 
+//hi
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
@@ -65,7 +66,7 @@ public class ClientUI extends JFrame implements Event {
 		roomsMenu.add(roomsSearch);
 		menu.add(roomsMenu);
 		windowSize.width *= .2;
-		windowSize.height *= .3;
+		windowSize.height *= .4;
 		setPreferredSize(windowSize);
 		setSize(windowSize);// This is needed for setLocationRelativeTo()
 		setLocationRelativeTo(null);

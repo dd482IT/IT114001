@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
@@ -16,8 +17,24 @@ public class ServerThread extends Thread {
 	private boolean isRunning = false;
 	private Room currentRoom;// what room we are in, should be lobby by default
 	private String clientName;
-	private List<String> muteList;
+	public List<String> mutedList = new ArrayList<String>();
 	private final static Logger log = Logger.getLogger(ServerThread.class.getName());
+
+	public boolean isMuted(String client) {
+		for (int i = 0; i < mutedList.size(); i++) {
+			if (mutedList.get(i).equalsIgnoreCase(client)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	// ***** Adding this method to add users
+	public void addMuted(String clientname) {
+		if (!mutedList.contains(clientname)) {
+			mutedList.add(clientname);
+		}
+	}
 
 	public String getClientName() {
 		return clientName;
@@ -145,6 +162,9 @@ public class ServerThread extends Thread {
 		case ROLL:
 			currentRoom.sendMessage(this, p.getMessage());
 			break;
+		case MUTE:
+			currentRoom.sendMessage(this, p.getMessage());
+			break;
 		case GET_ROOMS:
 			// far from efficient but it works for example sake
 			List<String> roomNames = currentRoom.getRooms();
@@ -161,9 +181,6 @@ public class ServerThread extends Thread {
 			break;
 		case JOIN_ROOM:
 			currentRoom.joinRoom(p.getMessage(), this);
-			break;
-		case MUTE:
-
 			break;
 		default:
 			log.log(Level.INFO, "Unhandled payload on server: " + p);
