@@ -2,6 +2,7 @@ package server;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -36,67 +37,104 @@ public class ServerThread extends Thread {
 	}
 
 	public void importFile() throws IOException {
-		File mutedFile = new File(clientName + ".txt");
-		if (mutedFile.exists()) {
-			try (Scanner reader = new Scanner(mutedFile)) {
+		File file = new File(clientName + ".txt");
+		// log.log(Level.INFO, file.getAbsolutePath());
+		log.log(Level.INFO, file.getName());
+
+		if (file.exists()) {
+			log.log(Level.INFO, "File Does Exist");
+			try (Scanner reader = new Scanner(file)) {
 				String contents;
 				while (reader.hasNext()) {
-					contents = reader.next();
+					contents = reader.nextLine();
+					log.log(Level.INFO, contents);
 					String[] mutedArray = contents.split(","); // splits name into an Array
 					mutedList = Arrays.asList(mutedArray); //
+					log.log(Level.INFO, Arrays.toString(mutedArray) + "THIS IS MY FINAL STRING I WILL BE USING");
 				}
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
 		} else {
-			try {
-				if (mutedFile.createNewFile()) {
-					log.log(Level.INFO, "Didn't exist, created new");
-				} else {
-					log.log(Level.INFO, "File already exists");
-				}
-			} catch (IOException ie) {
-				ie.printStackTrace();
-			}
+			log.log(Level.INFO, "File does not exist");
 		}
 
 	}
-	/*
-	 * // ***** Adding this method to add users public void addMuted(String name)
-	 * throws IOException { File mutedFile = new File(clientName + ".txt"); if
-	 * (!mutedList.contains(name)) { mutedList.add(name); }
-	 * 
-	 * try (FileWriter fw = new FileWriter(mutedFile)) { mutedFile.createNewFile();
-	 * fw.write(mutedList.toString()); fw.close(); log.log(Level.INFO, "Wrote " +
-	 * name + " to " + mutedFile); } catch (IOException e) { // TODO Auto-generated
-	 * catch block log.log(Level.INFO, "Error writing to file");
-	 * e.printStackTrace(); }
-	 * 
-	 * }
-	 * 
-	 * public void removeMuted(String name) { File mutedFile = new File(clientName +
-	 * ".txt"); if (mutedList.contains(name)) { mutedList.remove(name); }
-	 * 
-	 * try (FileWriter fw = new FileWriter(mutedFile)) { mutedFile.createNewFile();
-	 * fw.write(mutedList.toString()); fw.close(); log.log(Level.INFO, "Wrote " +
-	 * name + " to " + mutedFile); } catch (IOException e) { // TODO Auto-generated
-	 * catch block log.log(Level.INFO, "Error writing to file");
-	 * e.printStackTrace(); } }
-	 */
 
-	public void addMuted(String name) {
-		name = name.trim().toLowerCase();
-		if (!isMuted(name)) {
+	// Adding this method to add users
+	public void addMuted(String name) throws IOException {
+
+		File mutedFile = generateFile(clientName + ".txt");
+		if (!mutedList.contains(name)) {
 			mutedList.add(name);
+		}
+
+		try (FileWriter fw = new FileWriter(mutedFile)) {
+			mutedFile.createNewFile();
+			String s = mutedList.toString();
+			s = s.replace("[", "");
+			s = s.replace("]", "");
+			s = s.replace(" ", "");
+			fw.write(s);
+			fw.close();
+			log.log(Level.INFO, "Wrote " + name + " to " + mutedFile);
+		} catch (IOException e) { // TODO Auto-generated{
+			log.log(Level.INFO, "Error writing to file");
+			e.printStackTrace();
 		}
 
 	}
 
 	public void removeMuted(String name) {
-		name = name.trim().toLowerCase();
-		if (!isMuted(name)) {
+		File mutedFile = generateFile(clientName + ".txt");
+		if (mutedList.contains(name)) {
 			mutedList.remove(name);
 		}
+
+		try (FileWriter fw = new FileWriter(mutedFile)) {
+			if (!mutedList.isEmpty()) {
+				String s = mutedList.toString();
+				s = s.replace("[", "");
+				s = s.replace("]", "");
+				s = s.replace(" ", "");
+				fw.write(s);
+				fw.close();
+			} else {
+				fw.close();
+			}
+
+			log.log(Level.INFO, "Wrote " + name + " to " + mutedFile);
+		} catch (IOException e) { // TODO Auto-generated
+			log.log(Level.INFO, "Error writing to file");
+			e.printStackTrace();
+		}
+	}
+
+	/*
+	 * public void addMuted(String name) { name = name.trim().toLowerCase(); if
+	 * (!isMuted(name)) { mutedList.add(name); }
+	 * 
+	 * }
+	 * 
+	 * public void removeMuted(String name) { name = name.trim().toLowerCase(); if
+	 * (!isMuted(name)) { mutedList.remove(name); }
+	 * 
+	 * }
+	 */
+
+	public static File generateFile(String filename) {
+		File file = new File(filename);
+		try {
+			if (file.createNewFile()) {
+				System.out.println("Didn't exist, created new");
+			} else {
+				System.out.println("File already exists");
+			}
+		} catch (IOException ie) {
+			ie.printStackTrace();
+		}
+
+		return file;
 
 	}
 
