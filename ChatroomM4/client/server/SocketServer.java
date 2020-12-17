@@ -187,6 +187,13 @@ public class SocketServer {
 			}
 			log.log(Level.INFO, client.getClientName() + " joining room " + newRoom.getName());
 			newRoom.addClient(client);
+
+			try {
+				client.importFile();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			return true;
 		}
 		return false;

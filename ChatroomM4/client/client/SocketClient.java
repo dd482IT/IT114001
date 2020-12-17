@@ -26,7 +26,7 @@ public enum SocketClient {
 	private static ObjectOutputStream out;
 	private final static Logger log = Logger.getLogger(SocketClient.class.getName());
 	private static List<Event> events = new ArrayList<Event>();// change from event to list<event>
-	private static List<User> mutedUsers = new ArrayList<User>();
+	private static List<User> mutedList = new ArrayList<User>();
 
 	private Payload buildMessage(String message) {
 		Payload payload = new Payload();
