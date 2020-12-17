@@ -17,4 +17,6 @@ public interface Event {
 
 	void onGetRoom(String roomName);
 
+	void isMuted(String clientName, boolean isMuted); // For list future
+
 }

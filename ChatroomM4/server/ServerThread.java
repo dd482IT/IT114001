@@ -2,7 +2,6 @@ package server;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -62,43 +61,43 @@ public class ServerThread extends Thread {
 		}
 
 	}
+	/*
+	 * // ***** Adding this method to add users public void addMuted(String name)
+	 * throws IOException { File mutedFile = new File(clientName + ".txt"); if
+	 * (!mutedList.contains(name)) { mutedList.add(name); }
+	 * 
+	 * try (FileWriter fw = new FileWriter(mutedFile)) { mutedFile.createNewFile();
+	 * fw.write(mutedList.toString()); fw.close(); log.log(Level.INFO, "Wrote " +
+	 * name + " to " + mutedFile); } catch (IOException e) { // TODO Auto-generated
+	 * catch block log.log(Level.INFO, "Error writing to file");
+	 * e.printStackTrace(); }
+	 * 
+	 * }
+	 * 
+	 * public void removeMuted(String name) { File mutedFile = new File(clientName +
+	 * ".txt"); if (mutedList.contains(name)) { mutedList.remove(name); }
+	 * 
+	 * try (FileWriter fw = new FileWriter(mutedFile)) { mutedFile.createNewFile();
+	 * fw.write(mutedList.toString()); fw.close(); log.log(Level.INFO, "Wrote " +
+	 * name + " to " + mutedFile); } catch (IOException e) { // TODO Auto-generated
+	 * catch block log.log(Level.INFO, "Error writing to file");
+	 * e.printStackTrace(); } }
+	 */
 
-	// ***** Adding this method to add users
-	public void addMuted(String name) throws IOException {
-		File mutedFile = new File(clientName + ".txt");
-		if (!mutedList.contains(name)) {
+	public void addMuted(String name) {
+		name = name.trim().toLowerCase();
+		if (!isMuted(name)) {
 			mutedList.add(name);
-		}
-
-		try (FileWriter fw = new FileWriter(mutedFile)) {
-			mutedFile.createNewFile();
-			fw.write(mutedList.toString());
-			fw.close();
-			log.log(Level.INFO, "Wrote " + name + " to " + mutedFile);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			log.log(Level.INFO, "Error writing to file");
-			e.printStackTrace();
 		}
 
 	}
 
 	public void removeMuted(String name) {
-		File mutedFile = new File(clientName + ".txt");
-		if (mutedList.contains(name)) {
+		name = name.trim().toLowerCase();
+		if (!isMuted(name)) {
 			mutedList.remove(name);
 		}
 
-		try (FileWriter fw = new FileWriter(mutedFile)) {
-			mutedFile.createNewFile();
-			fw.write(mutedList.toString());
-			fw.close();
-			log.log(Level.INFO, "Wrote " + name + " to " + mutedFile);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			log.log(Level.INFO, "Error writing to file");
-			e.printStackTrace();
-		}
 	}
 
 	public String getClientName() {
@@ -158,6 +157,13 @@ public class ServerThread extends Thread {
 		payload.setClientName(clientName);
 		payload.setMessage(message);
 
+		return sendPayload(payload);
+	}
+
+	protected boolean muted(String clientName, Boolean isMuted) {
+		Payload payload = new Payload();
+		payload.setPayloadType(PayloadType.MUTE);
+		payload.setMuted(isMuted(clientName));
 		return sendPayload(payload);
 	}
 
@@ -225,9 +231,6 @@ public class ServerThread extends Thread {
 			currentRoom.sendMessage(this, p.getMessage());
 			break;
 		case ROLL:
-			currentRoom.sendMessage(this, p.getMessage());
-			break;
-		case MUTE:
 			currentRoom.sendMessage(this, p.getMessage());
 			break;
 		case GET_ROOMS:

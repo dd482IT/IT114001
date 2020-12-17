@@ -147,6 +147,7 @@ public class Room implements AutoCloseable {
 					sendMessage(client, "*...flipped a coin and got *" + side);
 					wasCommand = true;
 					break;
+
 				case MUTE:
 					String[] clientList = message.split(" ");
 					clientList[0] = null;
@@ -154,7 +155,7 @@ public class Room implements AutoCloseable {
 						if (clientList[i] != null) {
 							// client.mutedList.add(clientList[i]);
 							client.addMuted(clientList[i]); // added this on 12/12/2020
-							sendMessage(client, "#muted " + clientList[i] + "#");
+							sendMessage(client, "#muted " + clientList[i] + "#", client.isMuted(clientList[i]));
 						} else {
 							log.log(Level.INFO, clientList[i] + "NOT MUTED");
 						}
@@ -168,7 +169,8 @@ public class Room implements AutoCloseable {
 						if (clientList[i] != null) {
 							// client.mutedList.remove(clientList[i]);
 							client.removeMuted(clientList[i]); // added this on 12/12/2020
-							sendMessage(client, "#Unmuted " + clientList[i] + "#");
+							sendMessage(client, "#Unmuted " + clientList[i] + "#", client.isMuted(clientList[i]));
+
 						} else {
 							log.log(Level.INFO, clientList[i] + "NOT UNMUTED");
 						}
@@ -186,6 +188,18 @@ public class Room implements AutoCloseable {
 
 	// TODO changed from string to ServerThread
 	protected void sendConnectionStatus(ServerThread client, boolean isConnect, String message) {
+		Iterator<ServerThread> iter = clients.iterator();
+		while (iter.hasNext()) {
+			ServerThread c = iter.next();
+			boolean messageSent = c.sendConnectionStatus(client.getClientName(), isConnect, message);
+			if (!messageSent) {
+				iter.remove();
+				log.log(Level.INFO, "Removed client " + c.getId());
+			}
+		}
+	}
+
+	protected void sendMuted(ServerThread client, boolean isConnect, String message) {
 		Iterator<ServerThread> iter = clients.iterator();
 		while (iter.hasNext()) {
 			ServerThread c = iter.next();
@@ -273,7 +287,61 @@ public class Room implements AutoCloseable {
 		}
 	}
 
+	// --------------------------------------------------------------------------
+
+	// --------------------------------------------------------------------------
+
 	protected void sendMessage(ServerThread sender, String message) {
+		log.log(Level.INFO, getName() + ": Sending message to " + clients.size() + " clients");
+
+		if (processCommands(message, sender)) {
+			// it was a command, don't broadcast
+			return;
+		}
+
+		if (message.contains("@")) {
+			Iterator<ServerThread> iter = clients.iterator();
+			while (iter.hasNext()) {
+				ServerThread client = iter.next();
+				if (message.contains("@" + client.getClientName())) {
+					String[] messageSplit = message.split(" ");
+					String newMessage = "`Whisper: `";
+					for (int i = 0; i < messageSplit.length; i++) {
+						String word = messageSplit[i];
+						if (!word.contains("@")) {
+							newMessage = newMessage + " " + word;
+						}
+					}
+					boolean messageSent = client.send(sender.getClientName(), newMessage);
+					boolean messageRepeated = sender.send(sender.getClientName(),
+							newMessage + "`[sent to " + client.getClientName() + "]`");
+					if (!messageSent || !messageRepeated) {
+						iter.remove();
+						log.log(Level.INFO, "Removed client " + client.getId());
+					}
+				}
+			}
+		} else {
+			Iterator<ServerThread> iter = clients.iterator();
+			while (iter.hasNext()) {
+				ServerThread client = iter.next();
+				if (!client.isMuted(sender.getClientName())) {
+					boolean messageSent = client.send(sender.getClientName(), message);
+					if (!messageSent) {
+						iter.remove();
+						log.log(Level.INFO, "Removed client " + client.getId());
+					}
+				} else {
+					log.log(Level.INFO, "ERROR");
+				}
+
+			}
+		}
+
+	}
+
+	// --------------------------------------------------------------------------
+	protected void sendMessage(ServerThread sender, String message, Boolean isMuted) {
 		log.log(Level.INFO, getName() + ": Sending message to " + clients.size() + " clients");
 
 		if (processCommands(message, sender)) {
@@ -324,7 +392,6 @@ public class Room implements AutoCloseable {
 
 	// -------------------------------------------------------------------------
 
-	// -------------------------------------------------------------------------
 	public List<String> getRooms() {
 		return server.getRooms();
 	}
