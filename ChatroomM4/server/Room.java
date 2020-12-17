@@ -49,6 +49,10 @@ public class Room implements AutoCloseable {
 				sendConnectionStatus(client, true, "joined the room " + getName());
 				updateClientList(client);
 			}
+			/**
+			 * try { client.importFile(); } catch (IOException e) { e.printStackTrace();
+			 * log.log(Level.INFO, "Error Attempting to import a file"); }
+			 **/
 		}
 	}
 
@@ -149,7 +153,7 @@ public class Room implements AutoCloseable {
 					for (int i = 0; i < clientList.length; i++) {
 						if (clientList[i] != null) {
 							// client.mutedList.add(clientList[i]);
-							client.addMuted(clientList[i]);
+							client.addMuted(clientList[i]); // added this on 12/12/2020
 							sendMessage(client, "#muted " + clientList[i] + "#");
 						} else {
 							log.log(Level.INFO, clientList[i] + "NOT MUTED");
@@ -162,7 +166,8 @@ public class Room implements AutoCloseable {
 					clientList[0] = null;
 					for (int i = 0; i < clientList.length; i++) {
 						if (clientList[i] != null) {
-							client.mutedList.remove(clientList[i]);
+							// client.mutedList.remove(clientList[i]);
+							client.removeMuted(clientList[i]); // added this on 12/12/2020
 							sendMessage(client, "#Unmuted " + clientList[i] + "#");
 						} else {
 							log.log(Level.INFO, clientList[i] + "NOT UNMUTED");

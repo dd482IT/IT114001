@@ -1,12 +1,17 @@
 package server;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,6 +25,8 @@ public class ServerThread extends Thread {
 	public List<String> mutedList = new ArrayList<String>();
 	private final static Logger log = Logger.getLogger(ServerThread.class.getName());
 
+	File mutedFile = new File(clientName + ".txt");
+
 	public boolean isMuted(String client) {
 		for (int i = 0; i < mutedList.size(); i++) {
 			if (mutedList.get(i).equalsIgnoreCase(client)) {
@@ -29,10 +36,68 @@ public class ServerThread extends Thread {
 		return false;
 	}
 
+	public void importFile() throws IOException {
+		File mutedFile = new File(clientName + ".txt");
+		if (mutedFile.exists()) {
+			try (Scanner reader = new Scanner(mutedFile)) {
+				String contents;
+				while (reader.hasNext()) {
+					contents = reader.next();
+					String[] mutedArray = contents.split(","); // splits name into an Array
+					mutedList = Arrays.asList(mutedArray); //
+				}
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+		} else {
+			try {
+				if (mutedFile.createNewFile()) {
+					log.log(Level.INFO, "Didn't exist, created new");
+				} else {
+					log.log(Level.INFO, "File already exists");
+				}
+			} catch (IOException ie) {
+				ie.printStackTrace();
+			}
+		}
+
+	}
+
 	// ***** Adding this method to add users
-	public void addMuted(String clientname) {
-		if (!mutedList.contains(clientname)) {
-			mutedList.add(clientname);
+	public void addMuted(String name) throws IOException {
+		File mutedFile = new File(clientName + ".txt");
+		if (!mutedList.contains(name)) {
+			mutedList.add(name);
+		}
+
+		try (FileWriter fw = new FileWriter(mutedFile)) {
+			mutedFile.createNewFile();
+			fw.write(mutedList.toString());
+			fw.close();
+			log.log(Level.INFO, "Wrote " + name + " to " + mutedFile);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			log.log(Level.INFO, "Error writing to file");
+			e.printStackTrace();
+		}
+
+	}
+
+	public void removeMuted(String name) {
+		File mutedFile = new File(clientName + ".txt");
+		if (mutedList.contains(name)) {
+			mutedList.remove(name);
+		}
+
+		try (FileWriter fw = new FileWriter(mutedFile)) {
+			mutedFile.createNewFile();
+			fw.write(mutedList.toString());
+			fw.close();
+			log.log(Level.INFO, "Wrote " + name + " to " + mutedFile);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			log.log(Level.INFO, "Error writing to file");
+			e.printStackTrace();
 		}
 	}
 
