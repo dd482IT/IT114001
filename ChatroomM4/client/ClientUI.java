@@ -44,6 +44,7 @@ public class ClientUI extends JFrame implements Event {
 	JPanel textArea;
 	JPanel userPanel;
 	List<User> users = new ArrayList<User>();
+
 	private final static Logger log = Logger.getLogger(ClientUI.class.getName());
 	Dimension windowSize = Toolkit.getDefaultToolkit().getScreenSize();
 	String username;
@@ -453,6 +454,24 @@ public class ClientUI extends JFrame implements Event {
 		}
 	}
 
+	// https://github.com/MattToegel/IT114/blob/Feature-GameLogic/ProjectPart8/src/client/ClientUI.java
+	// Added for feature to show user muted on client List
+	public void isMuted(String clientName, boolean isMuted) {
+		Iterator<User> iter = users.iterator();
+		while (iter.hasNext()) {
+			User user = iter.next();
+			if (user.getName().equalsIgnoreCase(clientName)) {
+				if (isMuted) {
+					user.setName(clientName, "red^ ^red");
+				} else {
+					user.setName(clientName, "%s");
+				}
+				break;
+			}
+		}
+	}
+
+	// Added for feature to show user muted on client List
 	@Override
 	public void onMessageReceive(String clientName, String message) {
 		log.log(Level.INFO, String.format("%s: %s", clientName, message));

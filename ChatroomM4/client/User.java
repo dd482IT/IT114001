@@ -20,4 +20,10 @@ public class User extends JPanel {
 	public String getName() {
 		return name;
 	}
+
+	// Added for feature to show user muted on client List
+	public void setName(String name, String wrapper) {
+		nameField.setText(String.format(wrapper, name));
+	}
+
 }
